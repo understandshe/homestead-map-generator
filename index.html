@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🏡 Homestead Map Generator - Create Realistic Property Layouts</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      max-width: 1000px; 
+      margin: 0 auto; 
+      padding: 2rem 1rem; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    h1 { color: #2c5f41; margin: 0; font-size: 2.2rem; }
+    .subtitle { color: #666; margin-top: 0.5rem; }
+    .card { 
+      background: white; 
+      border-radius: 16px; 
+      padding: 2rem; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem; 
+    }
+    h3 { color: #2c5f41; margin-top: 0; border-bottom: 2px solid #e8f5e9; padding-bottom: 0.5rem; }
+    label { display: block; margin: 0.8rem 0 0.3rem; font-weight: 600; color: #444; }
+    input, select { 
+      width: 100%; 
+      padding: 0.7rem; 
+      border: 2px solid #e0e0e0; 
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s;
+    }
+    input:focus, select:focus { border-color: #2c5f41; outline: none; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+    button { 
+      background: #2c5f41; 
+      color: white; 
+      border: none; 
+      padding: 1rem 2rem; 
+      border-radius: 10px; 
+      font-size: 1.1rem; 
+      cursor: pointer; 
+      width: 100%; 
+      margin-top: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    button:hover:not(:disabled) { background: #1e4a2f; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(44,95,65,0.3); }
+    button:disabled { background: #999; cursor: not-allowed; }
+    .btn-small { 
+      width: auto; 
+      padding: 0.4rem 0.8rem; 
+      font-size: 0.9rem; 
+      margin-left: 0.5rem;
+      background: #e74c3c;
+    }
+    .btn-add { background: #27ae60; }
+    .btn-add:hover:not(:disabled) { background: #219a52; }
+    #preview { 
+      max-width: 100%; 
+      border-radius: 12px; 
+      display: none; 
+      margin: 1.5rem 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .feature-item { 
+      background: #f8f9fa; 
+      padding: 1rem; 
+      border-radius: 8px; 
+      margin-bottom: 0.5rem;
+      border-left: 4px solid #2c5f41;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #loading { 
+      text-align: center; 
+      color: #2c5f41; 
+      display: none; 
+      margin: 1.5rem 0;
+      font-size: 1.1rem;
+      padding: 1rem;
+      background: #e8f5e9;
+      border-radius: 8px;
+    }
+    .download-section {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: #e8f5e9;
+      border-radius: 12px;
+      display: none;
+    }
+    .download-btn {
+      display: inline-block;
+      background: #27ae60;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    .legend-item {
+      display: inline-block;
+      margin: 0.3rem 0.5rem;
+      padding: 0.3rem 0.8rem;
+      background: #f0f0f0;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+    .color-box {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    @media (max-width: 600px) {
+      .row { grid-template-columns: 1fr; }
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🏡 Homestead Map Generator</h1>
+    <div class="subtitle">Create Professional, Realistic Property Layouts in Seconds</div>
+  </div>
+
+  <div class="card">
+    <h3>📐 Plot Settings</h3>
+    <div class="row">
+      <div>
+        <label>Width (meters)</label>
+        <input type="number" id="width_m" value="100" min="10" max="1000">
+      </div>
+      <div>
+        <label>Height (meters)</label>
+        <input type="number" id="height_m" value="80" min="10" max="1000">
+      </div>
+      <div>
+        <label>Scale (px/meter)</label>
+        <input type="number" id="px_per_meter" value="12" min="5" max="20">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>➕ Add Features</h3>
+    <div class="row">
+      <div>
+        <label>Type</label>
+        <select id="ftype">
+          <option value="#E6D5B8">🌾 Field/Farm</option>
+          <option value="#C4A484">🏠 House</option>
+          <option value="#4A90E2">🌊 Pond/Water</option>
+          <option value="#9E9E9E">🛤️ Road/Path</option>
+          <option value="#7CB342">🌳 Garden/Orchard</option>
+          <option value="#8D6E63">🏚️ Barn/Shed</option>
+          <option value="#FFD54F">🌻 Flower Bed</option>
+        </select>
+      </div>
+      <div><label>X Position (m)</label><input type="number" id="fx" value="0" min="0"></div>
+      <div><label>Y Position (m)</label><input type="number" id="fy" value="0" min="0"></div>
+      <div><label>Width (m)</label><input type="number" id="fw" value="15" min="1"></div>
+      <div><label>Height (m)</label><input type="number" id="fh" value="12" min="1"></div>
+    </div>
+    <button type="button" class="btn-add" onclick="addFeature()">➕ Add to Map</button>
+    <div id="features-list" style="margin-top:1.5rem;"></div>
+  </div>
+
+  <div class="card">
+    <button id="generateBtn" onclick="generateMap()">🗺️ Generate Professional Map</button>
+    <div id="loading">⏳ Generating your map... (First load may take 30-50 seconds)</div>
+    <img id="preview" alt="Generated Map Preview" />
+    <div id="downloadSection" class="download-section">
+      <h3>✅ Your Map is Ready!</h3>
+      <p>High-resolution, print-ready PNG (300 DPI)</p>
+      <a id="downloadLink" class="download-btn" download="homestead_map.png">⬇️ Download PNG</a>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://homestead-map-generator.onrender.com/generate-map";
+
+    let features = [];
+    const typeNames = { 
+      "#E6D5B8":"Field", 
+      "#C4A484":"House", 
+      "#4A90E2":"Pond", 
+      "#9E9E9E":"Road", 
+      "#7CB342":"Garden",
+      "#8D6E63":"Barn",
+      "#FFD54F":"Flower Bed"
+    };
+
+    function addFeature() {
+      const f = {
+        x: +document.getElementById('fx').value,
+        y: +document.getElementById('fy').value,
+        w: +document.getElementById('fw').value,
+        h: +document.getElementById('fh').value,
+        color: document.getElementById('ftype').value,
+        shadow: true
+      };
+      
+      // Basic validation
+      if(f.x < 0 || f.y < 0) {
+        alert("X and Y positions cannot be negative");
+        return;
+      }
+      
+      features.push(f);
+      renderFeaturesList();
+      
+      // Clear position inputs for next entry
+      document.getElementById('fx').value = 0;
+      document.getElementById('fy').value = 0;
+    }
+
+    function renderFeaturesList() {
+      const div = document.getElementById('features-list');
+      if(features.length === 0) {
+        div.innerHTML = '<p style="color:#999; text-align:center;">No features added yet. Add your first feature above!</p>';
+        return;
+      }
+      
+      div.innerHTML = '<h4 style="margin-bottom:0.5rem;">📋 Features on Map:</h4>' + 
+        features.map((f,i) => 
+          `<div class="feature-item">
+            <div>
+              <span class="color-box" style="background:${f.color}"></span>
+              <strong>${typeNames[f.color]}</strong> 
+              @ (${f.x}m, ${f.y}m) — ${f.w}×${f.h}m
+            </div>
+            <button onclick="removeFeature(${i})" class="btn-small">✕ Remove</button>
+          </div>`
+        ).join('');
+    }
+    
+    function removeFeature(index) {
+      features.splice(index, 1);
+      renderFeaturesList();
+    }
+
+    async function generateMap() {
+      if(features.length === 0) {
+        alert("⚠️ Please add at least one feature to your map first!");
+        return;
+      }
+      
+      const btn = document.getElementById('generateBtn');
+      const loading = document.getElementById('loading');
+      const preview = document.getElementById('preview');
+      const downloadSection = document.getElementById('downloadSection');
+      const downloadLink = document.getElementById('downloadLink');
+      
+      btn.disabled = true;
+      loading.style.display = 'block';
+      preview.style.display = 'none';
+      downloadSection.style.display = 'none';
+
+      const payload = {
+        width_m: +document.getElementById('width_m').value,
+        height_m: +document.getElementById('height_m').value,
+        px_per_meter: +document.getElementById('px_per_meter').value,
+        features: features,
+        legend: Object.entries(typeNames).map(([color, name]) => [name, color])
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        
+        if(!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${errorText}`);
+        }
+        
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        preview.src = url;
+        preview.style.display = 'block';
+        downloadLink.href = url;
+        downloadSection.style.display = 'block';
+        
+        // Scroll to preview
+        preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+      } catch(error) {
+        alert("❌ Error generating map: " + error.message + 
+              "\n\nNote: The first request after inactivity may take 30-50 seconds (cold start). Please try again.");
+        console.error(error);
+      } finally {
+        btn.disabled = false;
+        loading.style.display = 'none';
+      }
+    }
+
+    // Initialize
+    renderFeaturesList();
+  </script>
+</body>
+</html>
