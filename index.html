@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🏡 Homestead Map Generator - Create Realistic Property Layouts</title>
+  <title>🏡 Premium Homestead Map Generator</title>
   <style>
     * { box-sizing: border-box; }
     body { 
@@ -112,32 +112,12 @@
       font-weight: 600;
       margin-top: 0.5rem;
     }
-    .legend-item {
-      display: inline-block;
-      margin: 0.3rem 0.5rem;
-      padding: 0.3rem 0.8rem;
-      background: #f0f0f0;
-      border-radius: 20px;
-      font-size: 0.9rem;
-    }
-    .color-box {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border-radius: 4px;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    @media (max-width: 600px) {
-      .row { grid-template-columns: 1fr; }
-      h1 { font-size: 1.5rem; }
-    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>🏡 Homestead Map Generator</h1>
-    <div class="subtitle">Create Professional, Realistic Property Layouts in Seconds</div>
+    <h1>🏡 Premium Homestead Map Generator</h1>
+    <div class="subtitle">Professional Realistic Property Layouts with Textures</div>
   </div>
 
   <div class="card">
@@ -153,7 +133,7 @@
       </div>
       <div>
         <label>Scale (px/meter)</label>
-        <input type="number" id="px_per_meter" value="12" min="5" max="20">
+        <input type="number" id="px_per_meter" value="15" min="5" max="20">
       </div>
     </div>
   </div>
@@ -164,13 +144,13 @@
       <div>
         <label>Type</label>
         <select id="ftype">
-          <option value="#E6D5B8">🌾 Field/Farm</option>
-          <option value="#C4A484">🏠 House</option>
-          <option value="#4A90E2">🌊 Pond/Water</option>
-          <option value="#9E9E9E">🛤️ Road/Path</option>
-          <option value="#7CB342">🌳 Garden/Orchard</option>
-          <option value="#8D6E63">🏚️ Barn/Shed</option>
-          <option value="#FFD54F">🌻 Flower Bed</option>
+          <option value="field">🌾 Field/Farm</option>
+          <option value="house">🏠 House</option>
+          <option value="pond">🌊 Pond/Water</option>
+          <option value="road">🛤️ Road/Path</option>
+          <option value="garden">🌳 Garden/Orchard</option>
+          <option value="barn">🏚️ Barn/Shed</option>
+          <option value="flower">🌻 Flower Bed</option>
         </select>
       </div>
       <div><label>X Position (m)</label><input type="number" id="fx" value="0" min="0"></div>
@@ -183,12 +163,12 @@
   </div>
 
   <div class="card">
-    <button id="generateBtn" onclick="generateMap()">🗺️ Generate Professional Map</button>
-    <div id="loading">⏳ Generating your map... (First load may take 30-50 seconds)</div>
+    <button id="generateBtn" onclick="generateMap()">🗺️ Generate Premium Map</button>
+    <div id="loading">⏳ Generating your premium map... (First load may take 30-50 seconds)</div>
     <img id="preview" alt="Generated Map Preview" />
     <div id="downloadSection" class="download-section">
-      <h3>✅ Your Map is Ready!</h3>
-      <p>High-resolution, print-ready PNG (300 DPI)</p>
+      <h3>✅ Your Premium Map is Ready!</h3>
+      <p>High-resolution, print-ready PNG (300 DPI) with Professional Textures</p>
       <a id="downloadLink" class="download-btn" download="homestead_map.png">⬇️ Download PNG</a>
     </div>
   </div>
@@ -198,13 +178,23 @@
 
     let features = [];
     const typeNames = { 
-      "#E6D5B8":"Field", 
-      "#C4A484":"House", 
-      "#4A90E2":"Pond", 
-      "#9E9E9E":"Road", 
-      "#7CB342":"Garden",
-      "#8D6E63":"Barn",
-      "#FFD54F":"Flower Bed"
+      "field":"Field", 
+      "house":"House", 
+      "pond":"Pond", 
+      "road":"Road", 
+      "garden":"Garden",
+      "barn":"Barn",
+      "flower":"Flower Bed"
+    };
+    
+    const typeColors = {
+      "field": "#8FBC8F",
+      "house": "#C4A484",
+      "pond": "#4A90E2",
+      "road": "#9E9E9E",
+      "garden": "#7CB342",
+      "barn": "#8D6E63",
+      "flower": "#FFD54F"
     };
 
     function addFeature() {
@@ -213,11 +203,10 @@
         y: +document.getElementById('fy').value,
         w: +document.getElementById('fw').value,
         h: +document.getElementById('fh').value,
-        color: document.getElementById('ftype').value,
+        type: document.getElementById('ftype').value,
         shadow: true
       };
       
-      // Basic validation
       if(f.x < 0 || f.y < 0) {
         alert("X and Y positions cannot be negative");
         return;
@@ -226,7 +215,6 @@
       features.push(f);
       renderFeaturesList();
       
-      // Clear position inputs for next entry
       document.getElementById('fx').value = 0;
       document.getElementById('fy').value = 0;
     }
@@ -242,8 +230,7 @@
         features.map((f,i) => 
           `<div class="feature-item">
             <div>
-              <span class="color-box" style="background:${f.color}"></span>
-              <strong>${typeNames[f.color]}</strong> 
+              <strong>${typeNames[f.type]}</strong> 
               @ (${f.x}m, ${f.y}m) — ${f.w}×${f.h}m
             </div>
             <button onclick="removeFeature(${i})" class="btn-small">✕ Remove</button>
@@ -278,7 +265,7 @@
         height_m: +document.getElementById('height_m').value,
         px_per_meter: +document.getElementById('px_per_meter').value,
         features: features,
-        legend: Object.entries(typeNames).map(([color, name]) => [name, color])
+        legend: Object.entries(typeNames).map(([type, name]) => [name, typeColors[type]])
       };
 
       try {
@@ -301,7 +288,6 @@
         downloadLink.href = url;
         downloadSection.style.display = 'block';
         
-        // Scroll to preview
         preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         
       } catch(error) {
@@ -314,7 +300,6 @@
       }
     }
 
-    // Initialize
     renderFeaturesList();
   </script>
 </body>
