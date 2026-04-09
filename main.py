@@ -1,10 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware  # ← यह लाइन ऐड करें
 from pydantic import BaseModel
 from renderer import HomesteadRenderer
 import io
 
 app = FastAPI(title="Homestead Realistic Map Generator")
+
+# ✅ CORS मिडलवेयर कॉन्फ़िगर करें (यह नया ब्लॉक ऐड करें)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ग्लोबल एक्सेस के लिए "*" रखें
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Feature(BaseModel):
     x: float
@@ -19,7 +29,7 @@ class MapRequest(BaseModel):
     height_m: int
     px_per_meter: int = 12
     features: list[Feature]
-    legend: list[tuple[str, str]]  # [("House", "#C4A484"), ...]
+    legend: list[tuple[str, str]]
 
 @app.post("/generate-map")
 async def generate_map(req: MapRequest):
