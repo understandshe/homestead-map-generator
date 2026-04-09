@@ -1,16 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware  # ← यह लाइन ऐड करें
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from renderer import HomesteadRenderer
+from renderer import PremiumHomesteadRenderer
 import io
 
-app = FastAPI(title="Homestead Realistic Map Generator")
+app = FastAPI(title="Premium Homestead Map Generator")
 
-# ✅ CORS मिडलवेयर कॉन्फ़िगर करें (यह नया ब्लॉक ऐड करें)
+# CORS Middleware - GitHub Pages से API कॉल के लिए
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ग्लोबल एक्सेस के लिए "*" रखें
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,20 +21,20 @@ class Feature(BaseModel):
     y: float
     w: float
     h: float
-    color: str
+    type: str  # "field", "house", "pond", "road", "garden", "barn", "flower"
     shadow: bool = True
 
 class MapRequest(BaseModel):
     width_m: int
     height_m: int
-    px_per_meter: int = 12
+    px_per_meter: int = 15
     features: list[Feature]
     legend: list[tuple[str, str]]
 
 @app.post("/generate-map")
 async def generate_map(req: MapRequest):
     try:
-        renderer = HomesteadRenderer(req.width_m, req.height_m, req.px_per_meter)
+        renderer = PremiumHomesteadRenderer(req.width_m, req.height_m, req.px_per_meter)
         png_bytes = renderer.render(
             [f.model_dump() for f in req.features],
             req.legend
@@ -42,3 +42,7 @@ async def generate_map(req: MapRequest):
         return StreamingResponse(png_bytes, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/")
+def root():
+    return {"message": "Premium Homestead Map Generator API", "status": "running"}
